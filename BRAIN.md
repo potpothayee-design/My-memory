@@ -92,7 +92,9 @@ Cold storage. Fetch a file **only** when the topic matches. Don't preload these.
 |---|---|---|
 | `archive/2026-10-tools.md` | Tool picks, free-tier limits, what I actually run | I ask about tools, costs, or what to run something on |
 | `archive/2026-10-robot-arm.md` | BLE robot arm: `.aia` app files, Mega wiring/pins, command protocol, next steps | I mention the robot arm, BLE, Arduino, servos, `.aia`, App Inventor, or PlatformIO |
-| `archive/2026-10-smart-lamp-thesis.md` | Capstone doc (CPE Practice & Design 1): full text of Chapters 1–3 — statement of the problem, RRL, root causes, methodology — plus the adviser's comments [a]–[an] | I mention the smart lamp, capstone, thesis, CPE Practice & Design, or the adviser's revisions |
+| `archive/2026-10-smart-lamp-thesis.md` | Capstone doc **1.0** (CPE Practice & Design 1): full text of Chapters 1–3 — statement of the problem, RRL, root causes, methodology — plus the adviser's comments [a]–[an] | I mention the smart lamp, capstone, thesis, CPE Practice & Design, or the adviser's revisions |
+| `archive/2026-10-smart-lamp-thesis-v2.md` | Capstone doc **2.0**: the revised draft (dual-mode title, new Background and Significance) | I need the current draft text or ask what changed between drafts |
+| `archive/2026-10-smart-lamp-revision-check.md` | Comment-by-comment check of 2.0 against 1.0's adviser comments — what's fixed, what regressed, what's still open | I ask which adviser comments are still unaddressed, or what to fix next in the thesis |
 | `archive/README.md` | How the cold layer works (meta, not memory) | Only if editing the archive structure |
 
 ## 7. Open Questions
