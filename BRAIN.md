@@ -95,6 +95,7 @@ Cold storage. Fetch a file **only** when the topic matches. Don't preload these.
 | `archive/2026-10-smart-lamp-thesis.md` | Capstone doc **1.0** (CPE Practice & Design 1): full text of Chapters 1–3 — statement of the problem, RRL, root causes, methodology — plus the adviser's comments [a]–[an] | I mention the smart lamp, capstone, thesis, CPE Practice & Design, or the adviser's revisions |
 | `archive/2026-10-smart-lamp-thesis-v2.md` | Capstone doc **2.0**: the revised draft (dual-mode title, new Background and Significance) | I need the current draft text or ask what changed between drafts |
 | `archive/2026-10-smart-lamp-revision-check.md` | Comment-by-comment check of 2.0 against 1.0's adviser comments — what's fixed, what regressed, what's still open | I ask which adviser comments are still unaddressed, or what to fix next in the thesis |
+| `archive/2026-10-smart-lamp-ch1-ch2-revision-pack.md` | Paste-ready replacement text for Chapters 1–2: revised SOP, objectives, scope/delimitation, 19 definition-of-terms entries, formal §2.2.6–2.2.10, table fixes. Also the 3 open decisions | I'm ready to write or paste thesis Chapter 1 or 2 revisions |
 | `archive/README.md` | How the cold layer works (meta, not memory) | Only if editing the archive structure |
 
 ## 7. Open Questions
