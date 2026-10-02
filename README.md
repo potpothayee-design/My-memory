@@ -30,13 +30,9 @@ URL appears. Everything else in this project just says "this repo."
 
 At the end of a session, say: **"update my brain."**
 
-| Where you are | What lands |
-|---|---|
-| An assistant with repo access (Arena, or any agent you've connected GitHub to) | It commits and pushes the new `BRAIN.md` directly |
-| Any other assistant | It prints a complete replacement in one copy-paste block; you commit it |
+The assistant prints a complete replacement file in one copy-paste block. You commit it.
 
-Print-and-paste is the baseline — it works with every assistant that can produce text. The push
-path only applies in sessions where repo access was explicitly granted.
+That friction is deliberate — see the table below.
 
 ### Nothing is captured automatically
 
@@ -74,14 +70,14 @@ click each time and produce a file nobody reads.
 
 1. **The repo is public — nothing sensitive goes in it.** No keys, no tokens, no passwords, no client data.
 2. **`BRAIN.md` stays under ~150 lines.** When it grows, detail gets demoted to `archive/` and leaves a one-line index row behind.
-3. **AI writes only when you've authorized it.** With repo access granted, the assistant commits. Without it, it prints and you commit. Nothing is ever auto-committed between sessions.
+3. **No AI writes to this repo.** Assistants print; the human commits.
 
 ## Why it's shaped this way
 
 | Choice | Reason | Tradeoff |
 |---|---|---|
 | Read over a plain public URL | Any assistant can fetch it with zero credentials | Anyone can read it — so nothing private ever goes in |
-| Write works two ways | Print-and-paste works with every assistant; push works when you've granted repo access | In a push-capable session the assistant holds a repo-scoped token |
+| Write is manual | No push token is handed to a platform that may train on prompts | ~15 seconds of copy-paste per update |
 | Public repo | Required for credential-free reads | No secrets, ever |
 | HOT/COLD split | Keeps every session from loading the whole history | The assistant must judge when to open the archive |
 | Plain markdown | Works with any assistant, indefinitely | No search, no sync, no automation |
