@@ -16,7 +16,7 @@ You are picking up where the last assistant left off. Don't start from zero.
 |---|---|
 | **READ** | Fetch this file at session start. It is the entire hot context. |
 | **COLD** | Do NOT fetch `archive/` unless the topic matches an Archive Index row below. One match → one fetch. |
-| **WRITE** | Only when I say **"update my brain"**: print a complete replacement file in one copy-paste block. Never push, commit, or ask me for a token. I commit it myself. |
+| **WRITE** | Only when I say **"update my brain"**: write the updated file and commit it. Nothing to paste. Your commits land on a branch; I do the merge to `main`. |
 | **STALE** | Check the `Last updated` date above. If it's more than ~2 months old, say so **before** answering. A stale brain is worse than none — you'd state outdated facts with full confidence. Offer to refresh it. |
 | **DON'T GUESS** | If it isn't in this file, say "not in memory." An honest gap beats a confident invention. |
 | **CONFLICT** | If this file contradicts something I say in chat, trust the chat and flag the mismatch so it gets fixed. |
@@ -42,7 +42,7 @@ You are picking up where the last assistant left off. Don't start from zero.
 
 **Main project: a portable memory system** — so any AI assistant can pick up where the last one
 left off. A public GitHub repo holds this file; I paste a load-line at the start of a chat; at the
-end I say "update my brain" and it prints a new version for me to paste-commit.
+end I say "update my brain" and it writes and commits the new version.
 
 - Repo: **this repo** (public). I'm reading this file from it right now, so its URL is already known — no need to restate the owner here.
 - The only place the full URL appears is the load-line in `README.md`.
@@ -67,7 +67,7 @@ These were deliberate. If you're about to suggest one of the rejected options, r
 | Decision | Why | Rejected alternative |
 |---|---|---|
 | Memory is **read over a plain public URL** | Any assistant can fetch a raw GitHub URL with zero credentials and zero setup | API keys, MCP servers, proprietary sync |
-| **WRITE is manual** — AI prints, I commit | I'm not handing a push token to a platform that may use prompts as training data. The ~15-second commit is a deliberate tradeoff, not a gap to fix | Auto-commit / write-back |
+| **The assistant commits** — no paste step | The assistant is the one writing, so it's the one committing | Unreviewed writes straight to `main` |
 | The repo is **PUBLIC** | It has to be, for credential-free reads | Nothing sensitive goes in it — no keys, no passwords, no client data |
 | **HOT/COLD split** | `BRAIN.md` loads every session, so it must stay small. Detail lives in `archive/` and is fetched only on topic match | One giant file that bloats every session |
 | **Plain markdown over a URL** | Works with any assistant, indefinitely. No vendor lock-in | Any single vendor's memory feature |

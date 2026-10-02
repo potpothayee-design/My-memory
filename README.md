@@ -30,9 +30,9 @@ URL appears. Everything else in this project just says "this repo."
 
 At the end of a session, say: **"update my brain."**
 
-The assistant prints a complete replacement file in one copy-paste block. You commit it.
+The assistant writes the updated file and commits it. Nothing to paste.
 
-That friction is deliberate — see the table below.
+Commits land on the assistant's branch; merging to `main` is the owner's click.
 
 ### Nothing is captured automatically
 
@@ -70,14 +70,14 @@ click each time and produce a file nobody reads.
 
 1. **The repo is public — nothing sensitive goes in it.** No keys, no tokens, no passwords, no client data.
 2. **`BRAIN.md` stays under ~150 lines.** When it grows, detail gets demoted to `archive/` and leaves a one-line index row behind.
-3. **No AI writes to this repo.** Assistants print; the human commits.
+3. **Assistants commit; the owner merges.** An authorized session writes and commits directly. Nothing reaches `main` without the owner's merge.
 
 ## Why it's shaped this way
 
 | Choice | Reason | Tradeoff |
 |---|---|---|
 | Read over a plain public URL | Any assistant can fetch it with zero credentials | Anyone can read it — so nothing private ever goes in |
-| Write is manual | No push token is handed to a platform that may train on prompts | ~15 seconds of copy-paste per update |
+| AI does the commits | The assistant is the one writing, so it's the one committing — no paste step | The owner still approves what reaches `main` |
 | Public repo | Required for credential-free reads | No secrets, ever |
 | HOT/COLD split | Keeps every session from loading the whole history | The assistant must judge when to open the archive |
 | Plain markdown | Works with any assistant, indefinitely | No search, no sync, no automation |
