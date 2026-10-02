@@ -16,7 +16,7 @@ You are picking up where the last assistant left off. Don't start from zero.
 |---|---|
 | **READ** | Fetch this file at session start. It is the entire hot context. |
 | **COLD** | Do NOT fetch `archive/` unless the topic matches an Archive Index row below. One match → one fetch. |
-| **WRITE** | Only when I say **"update my brain"**: print a complete replacement file in one copy-paste block. Never push, commit, or ask me for a token. I commit it myself. |
+| **WRITE** | Only when I say **"update my brain"**. With repo access granted this session → commit and push the new file yourself. Without it → print a complete replacement in one copy-paste block. Never auto-commit between sessions, never ask me for a token. |
 | **DON'T GUESS** | If it isn't in this file, say "not in memory." An honest gap beats a confident invention. |
 | **CONFLICT** | If this file contradicts something I say in chat, trust the chat and flag the mismatch so it gets fixed. |
 
