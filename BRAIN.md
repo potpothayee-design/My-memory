@@ -43,8 +43,8 @@ You are picking up where the last assistant left off. Don't start from zero.
 left off. A public GitHub repo holds this file; I paste a load-line at the start of a chat; at the
 end I say "update my brain" and it prints a new version for me to paste-commit.
 
-- Repo: `github.com/potpothayee-design/brain` (public)
-- Load-line URL: `https://raw.githubusercontent.com/potpothayee-design/brain/main/BRAIN.md`
+- Repo: `github.com/potpothayee-design/My-memory` (public)
+- Load-line URL: `https://raw.githubusercontent.com/potpothayee-design/My-memory/main/BRAIN.md`
 
 **What I use AI for, roughly in order:**
 

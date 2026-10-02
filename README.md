@@ -10,7 +10,7 @@ No app. No account. No API key. No vendor lock-in.
 Paste this at the start of a chat:
 
 ```
-Load my memory: https://raw.githubusercontent.com/potpothayee-design/brain/main/BRAIN.md
+Load my memory: https://raw.githubusercontent.com/potpothayee-design/My-memory/main/BRAIN.md
 Fetch that URL, read it, then follow the protocol inside it. Don't fetch anything in
 archive/ unless the topic clearly matches an index entry.
 ```
