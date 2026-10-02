@@ -49,6 +49,10 @@ end I say "update my brain" and it writes and commits the new version.
 - Repo: **this repo** (public). I'm reading this file from it right now, so its URL is already known — no need to restate the owner here.
 - The only place the full URL appears is the load-line in `README.md`.
 
+**Also in flight: a BLE robot arm.** Arduino Mega 2560 + servo + light, driven from an Android app
+(MIT App Inventor `.aia`). Files, wiring, pin gotchas, and the command protocol are all in
+`archive/2026-10-robot-arm.md` — fetch it rather than asking me to re-explain.
+
 **What I use AI for, roughly in order:**
 
 | Use | Notes |
@@ -87,6 +91,7 @@ Cold storage. Fetch a file **only** when the topic matches. Don't preload these.
 | File | Covers | Fetch when |
 |---|---|---|
 | `archive/2026-10-tools.md` | Tool picks, free-tier limits, what I actually run | I ask about tools, costs, or what to run something on |
+| `archive/2026-10-robot-arm.md` | BLE robot arm: `.aia` app files, Mega wiring/pins, command protocol, next steps | I mention the robot arm, BLE, Arduino, servos, `.aia`, App Inventor, or PlatformIO |
 | `archive/README.md` | How the cold layer works (meta, not memory) | Only if editing the archive structure |
 
 ## 7. Open Questions
@@ -95,9 +100,9 @@ Still unrecorded. Fill these in on the next "update my brain".
 
 | # | Question | Why it matters |
 |---|---|---|
-| 1 | Which websites or apps are actually in flight right now? | Turns generic help into specific help |
+| 1 | Which websites are actually in flight? | The robot arm is logged now; web work still isn't |
 | 2 | Which tools am I actually using day to day? | `archive/2026-10-tools.md` is still a skeleton |
 
 ---
 
-*Protocol: read this file → answer → on "update my brain", emit a full replacement.*
+*Protocol: read this file → answer → on "update my brain", mine the session, then write and commit.*
