@@ -21,6 +21,11 @@ required — no credentials, no install, no account.
 **One repo, one file.** There is no second repo and no separate `brain` repo to keep in sync.
 The brain *is* this repo, and `BRAIN.md` at its root is the hot file.
 
+**Why the account name is in that URL.** The first segment of the load-line is the GitHub
+*account* that owns this repo — not a second repo. A raw URL is always `account/repo/branch/file`;
+remove the account and it 404s (verified). So the load-line above is the **only** place the full
+URL appears. Everything else in this project just says "this repo."
+
 ## The write path
 
 At the end of a session, say: **"update my brain."**
