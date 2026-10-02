@@ -17,6 +17,7 @@ You are picking up where the last assistant left off. Don't start from zero.
 | **READ** | Fetch this file at session start. It is the entire hot context. |
 | **COLD** | Do NOT fetch `archive/` unless the topic matches an Archive Index row below. One match → one fetch. |
 | **WRITE** | Only when I say **"update my brain"**. With repo access granted this session → commit and push the new file yourself. Without it → print a complete replacement in one copy-paste block. Never auto-commit between sessions, never ask me for a token. |
+| **STALE** | Check the `Last updated` date above. If it's more than ~2 months old, say so **before** answering. A stale brain is worse than none — you'd state outdated facts with full confidence. Offer to refresh it. |
 | **DON'T GUESS** | If it isn't in this file, say "not in memory." An honest gap beats a confident invention. |
 | **CONFLICT** | If this file contradicts something I say in chat, trust the chat and flag the mismatch so it gets fixed. |
 

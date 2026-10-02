@@ -38,6 +38,30 @@ At the end of a session, say: **"update my brain."**
 Print-and-paste is the baseline — it works with every assistant that can produce text. The push
 path only applies in sessions where repo access was explicitly granted.
 
+### Nothing is captured automatically
+
+This is a **briefing document, not a recorder.** Nothing you do in a chat is remembered unless it
+gets written here. Switch tools, close the tab — the conversation is gone, and only what's in this
+file survives.
+
+That's the point: you decide what's true about you, not a vendor's inference engine. The cost is
+that the brain only knows what you bothered to write down.
+
+### When it goes stale
+
+A memory file you stop feeding is **worse than no memory file** — an assistant reading it will
+state outdated facts confidently.
+
+| Signal | What to do |
+|---|---|
+| `Last updated` over ~2 months old | The protocol tells the assistant to flag it before answering |
+| Projects or tools changed | Update — the file is now wrong, not merely old |
+| A decision in §4 changed | Update immediately; those rows exist to stop re-litigation |
+| A session changed how you work | Say "update my brain" before you close the tab, or it's lost |
+
+**Cadence:** once every few sessions, not every session. Batch it — constant updates cost a merge
+click each time and produce a file nobody reads.
+
 ## File map
 
 | File | Layer | Loaded | Contains |
