@@ -30,18 +30,37 @@ URL appears. Everything else in this project just says "this repo."
 
 At the end of a session, say: **"update my brain."**
 
-The assistant writes the updated file and commits it. Nothing to paste.
+Nothing to paste. The assistant writes the updated file and commits it.
 
 Commits land on the assistant's branch; merging to `main` is the owner's click.
 
+### Two directions
+
+| Direction | What happens |
+|---|---|
+| **You tell it** | You say what changed — a new project, a dropped tool, a corrected preference. It gets written in. |
+| **It mines the session** | In a long chat, the assistant re-reads the whole conversation and pulls out what's durable on its own. Preferences you revealed in passing, decisions you made, corrections you gave it. You don't have to remember what was worth keeping. |
+
+Both fire on the same phrase. A short chat mostly takes the first path; a long one takes both.
+
+**What counts as durable:** anything that changes how the assistant answers you next month. Not
+today's task, not a one-off question, not a replay of what just happened. Detail too long for the
+hot file gets demoted to `archive/`.
+
+**It lists what it mined** before committing, so you can correct it. Wrong memory is worse than no
+memory.
+
 ### Nothing is captured automatically
 
-This is a **briefing document, not a recorder.** Nothing you do in a chat is remembered unless it
-gets written here. Switch tools, close the tab — the conversation is gone, and only what's in this
-file survives.
+There's no background recorder. Nothing is saved while you work — the mining above only happens
+when you say the phrase.
+
+**And it only sees the session it's in.** A chat in another tool, or an earlier conversation that's
+no longer in context, isn't reachable. If it mattered, it's either already in this file or you have
+to say it again.
 
 That's the point: you decide what's true about you, not a vendor's inference engine. The cost is
-that the brain only knows what you bothered to write down.
+that the brain only knows what got written down.
 
 ### When it goes stale
 

@@ -16,7 +16,9 @@ You are picking up where the last assistant left off. Don't start from zero.
 |---|---|
 | **READ** | Fetch this file at session start. It is the entire hot context. |
 | **COLD** | Do NOT fetch `archive/` unless the topic matches an Archive Index row below. One match → one fetch. |
-| **WRITE** | Only when I say **"update my brain"**: write the updated file and commit it. Nothing to paste. Your commits land on a branch; I do the merge to `main`. |
+| **WRITE** | Only on **"update my brain"**. Two jobs: (1) **re-read this whole session** and pull out anything durable — don't wait for me to list it, that's the point of the phrase; (2) apply anything I state explicitly. Then write the updated file and commit it. Your commits land on a branch; I do the merge to `main`. |
+| **FILTER** | Durable only — things that change how you answer me next month. Not today's task, not one-off questions, not a play-by-play of this chat. Long detail goes to `archive/` with an index row. List what you mined, briefly, so I can correct it. |
+| **SCOPE** | You can only mine the session you're in. Past chats in other tools aren't reachable — if something from an earlier session matters, it has to be in this file already or I have to say it again. |
 | **STALE** | Check the `Last updated` date above. If it's more than ~2 months old, say so **before** answering. A stale brain is worse than none — you'd state outdated facts with full confidence. Offer to refresh it. |
 | **DON'T GUESS** | If it isn't in this file, say "not in memory." An honest gap beats a confident invention. |
 | **CONFLICT** | If this file contradicts something I say in chat, trust the chat and flag the mismatch so it gets fixed. |
