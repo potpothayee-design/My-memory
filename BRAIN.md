@@ -3,7 +3,7 @@
 <!-- HOT MEMORY — always loaded. Hard cap ~150 lines.
      When it outgrows the cap, demote detail to archive/ and leave a row in the Archive Index. -->
 
-**Last updated:** 2026-10-02 · **Owner:** hycee · **Location:** Angeles City, Philippines
+**Last updated:** 2026-10-05 · **Owner:** hycee · **Location:** Angeles City, Philippines
 **Timezone:** Asia/Singapore (UTC+8) · **Language:** English
 
 ---
@@ -49,9 +49,10 @@ end I say "update my brain" and it writes and commits the new version.
 - Repo: **this repo** (public). I'm reading this file from it right now, so its URL is already known — no need to restate the owner here.
 - The only place the full URL appears is the load-line in `README.md`.
 
-**Also in flight: a BLE robot arm.** Arduino Mega 2560 + servo + light, driven from an Android app
-(MIT App Inventor `.aia`). Files, wiring, pin gotchas, and the command protocol are all in
-`archive/2026-10-robot-arm.md` — fetch it rather than asking me to re-explain.
+**Also in flight: a robot arm.** Arduino Mega 2560 + servos + light, driven from an Android app
+(MIT App Inventor `.aia`) over **classic Bluetooth** — the module is an HC-05, not BLE. Files,
+wiring, pin gotchas, and the command protocol are all in `archive/2026-10-robot-arm.md` — fetch it
+rather than asking me to re-explain.
 
 **What I use AI for, roughly in order:**
 
@@ -63,8 +64,9 @@ end I say "update my brain" and it writes and commits the new version.
 | **Documents** | Writing, editing, long-form |
 | **Skill expansion** | Day-to-day exploration of how to get better at this |
 
-**Status (2026-10-02):** this file was rebuilt from my own written summary plus my answers. The
-identity and preferences are mine and confirmed. Treat §4 as settled unless I say otherwise.
+**Status (2026-10-05):** the robot-arm facts were corrected this session — an earlier note claiming
+classic Bluetooth "does NOT work with my module" was wrong. Identity and preferences are unchanged
+from the 2026-10-02 rebuild and are mine and confirmed. Treat §4 as settled unless I say otherwise.
 
 ## 4. Decisions & rationale — don't relitigate these
 
@@ -77,12 +79,16 @@ These were deliberate. If you're about to suggest one of the rejected options, r
 | The repo is **PUBLIC** | It has to be, for credential-free reads | Nothing sensitive goes in it — no keys, no passwords, no client data |
 | **HOT/COLD split** | `BRAIN.md` loads every session, so it must stay small. Detail lives in `archive/` and is fetched only on topic match | One giant file that bloats every session |
 | **Plain markdown over a URL** | Works with any assistant, indefinitely. No vendor lock-in | Any single vendor's memory feature |
+| The robot arm runs on **classic Bluetooth**, not BLE | The module is an HC-05 — it pairs and works over classic SPP at 9600 baud (verified with a terminal app). A BLE scan cannot find it | The BluetoothLE-extension build `finalble.aia` — it can never connect to this module |
 
 ## 5. Working preferences
 
 - **Genuinely free tools only.** Not trials. Not "free tier" credits that evaporate in a day.
 - **If something has limits, say so up front** — before I invest time in it.
 - Assume **no self-hosting** (see §2). Prefer things that run in a browser or as a single local file.
+- **I add files myself through GitHub's web uploader, so they land on `main`** — not on the
+  assistant's branch. If I say I uploaded something and you can't see it, fetch `origin/main`
+  before concluding it's missing.
 
 ## 6. Archive Index
 
@@ -91,7 +97,7 @@ Cold storage. Fetch a file **only** when the topic matches. Don't preload these.
 | File | Covers | Fetch when |
 |---|---|---|
 | `archive/2026-10-tools.md` | Tool picks, free-tier limits, what I actually run | I ask about tools, costs, or what to run something on |
-| `archive/2026-10-robot-arm.md` | BLE robot arm: `.aia` app files, Mega wiring/pins, command protocol, next steps | I mention the robot arm, BLE, Arduino, servos, `.aia`, App Inventor, or PlatformIO |
+| `archive/2026-10-robot-arm.md` | Robot arm: which `.aia` build actually works, HC-05 pairing, Mega wiring/pins, servo gotchas, command protocol, firmware status | I mention the robot arm, Bluetooth, HC-05, Arduino, servos, `.aia`, App Inventor, or PlatformIO |
 | `archive/README.md` | How the cold layer works (meta, not memory) | Only if editing the archive structure |
 
 ## 7. Open Questions
@@ -101,7 +107,9 @@ Still unrecorded. Fill these in on the next "update my brain".
 | # | Question | Why it matters |
 |---|---|---|
 | 1 | Which websites are actually in flight? | The robot arm is logged now; web work still isn't |
-| 2 | Which tools am I actually using day to day? | `archive/2026-10-tools.md` is still a skeleton |
+| 2 | Confirm the tool list in `archive/2026-10-tools.md` | It now records what I was seen using on 2026-10-05, inferred from screenshots — not stated by me |
+| 3 | What should gesture mode actually use? There is no Camera component in the app | Part 2 is undefined until this is decided |
+| 4 | Servo pulse calibration (`MIN_US` / `MAX_US`) for the 300° base | Angles stay approximate until it's measured |
 
 ---
 
