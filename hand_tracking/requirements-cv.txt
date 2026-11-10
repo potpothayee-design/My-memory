@@ -1,0 +1,5 @@
+# hand_landmarker_cv.py — the MediaPipe-free version.
+# That is the whole list: no mediapipe, no model file, nothing downloaded.
+opencv-python>=4.8
+numpy>=1.24
+pyserial>=3.5        # optional — only needed for --serial (robot arm)

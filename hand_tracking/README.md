@@ -6,7 +6,8 @@ uploaded anywhere. Your webcam frames never leave the machine.
 
 ```
 hand_tracking/
-├── hand_landmarker.py     ← the whole thing (one file)
+├── hand_landmarker.py     ← the whole thing (one file), uses MediaPipe
+├── hand_landmarker_cv.py  ← same output, no MediaPipe, OpenCV + NumPy only
 ├── requirements.txt
 ├── run_windows.bat        ← double-click: sets up a venv, installs, starts webcam
 └── README.md
@@ -39,6 +40,48 @@ file to download at all**. That's the default backend.
 | `solutions` | none — bundled in pip package | **default**, fully offline, tested |
 | `tasks` | `hand_landmarker.task` | exact `.task` bundle; needs the file |
 | `auto` | whichever is available | tries `.task` first, falls back |
+
+---
+
+## No MediaPipe at all: `hand_landmarker_cv.py`
+
+`hand_landmarker.py` leans on MediaPipe's trained model. `hand_landmarker_cv.py`
+does not: no `mediapipe`, no `.task`, no TFLite, no download — just geometry.
+
+```
+pip install opencv-python numpy
+python hand_landmarker_cv.py                    # webcam
+python hand_landmarker_cv.py --calibrate        # learn the empty room first
+python hand_landmarker_cv.py --image hand.jpg --out marked.jpg --json
+```
+
+It emits the **same 21 landmarks in the same order**, the same JSON fields
+(`label`, `score`, `gesture`, `pinch`, `fingers`, `seen_tips`, `landmarks`,
+`world_landmarks`), the same `--csv` / `--record` outputs and the same arm
+protocol, so it drops into anything written for the other file. `world_landmarks`
+is `null` because there is no depth (`z` is always `0`).
+
+**How it works:** YCrCb skin mask → largest blob → palm circle from the distance
+transform (ignores the forearm, which is thicker than the palm) → radial profile
+→ fingertip peaks → sequence-align the peaks to the five fingers → interpolate
+21 joints → gesture rules.
+
+| | `hand_landmarker.py` | `hand_landmarker_cv.py` |
+|---|---|---|
+| Dependencies | `mediapipe opencv-python numpy` | `opencv-python numpy` |
+| Model file | none (weights ship in the pip package) | none |
+| Speed, CPU, 640×480 | ~27 fps (default mode) | ~77 fps (13 ms/frame) |
+| Speed, CPU, 1280×720 | ~20 fps | ~31 fps (32 ms/frame) |
+| Accuracy | 21 precise landmarks, any background | fingertips good, knuckles interpolated |
+| Works on any background | yes | no — needs a non-skin background or `--calibrate` |
+| Depth (`z`) | yes | no, always 0 |
+| Fine poses (OK sign, 3 fingers) | yes | no |
+
+Measured on one machine, one photo set: open palm → `OPEN_PALM` with all five
+fingertips on 240/240 frames of a synthetic video; closed fist → `FIST` on
+120/120 frames. Where it breaks: a face in frame (skin too), a beige wall, a
+hand with fingers pressed tightly together (reads as closed), and anything that
+needs real joint angles.
 
 ---
 
