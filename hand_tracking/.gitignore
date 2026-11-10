@@ -9,3 +9,4 @@ hand_landmarker.task
 *.mp4
 snapshot_*.png
 *.csv
+gestures.json
