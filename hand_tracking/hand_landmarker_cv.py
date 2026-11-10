@@ -46,6 +46,11 @@ Quick start
 with no camera, and prints ok/FAIL per stage. If the script ever dies, that
 tells you in one line whether the fault is the code or the camera.
 
+Windows camera note: the default videoio backend (MSMF) opens many USB webcams
+and then fails every read ("Failed to select stream 0"). This file therefore
+tries DirectShow first on Windows, verifies a real frame before it starts, and
+tells you which backend won.
+
 Keys: q quit · c calibrate · b box · k trail · g gestures · h hud · i indices ·
       space pause · s snapshot
 
@@ -73,7 +78,7 @@ except ImportError:  # pragma: no cover
     sys.exit("OpenCV is missing. Run:  pip install opencv-python")
 
 QUIET = False
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 
 # Windows builds of OpenCV take 32-bit C ints, so one garbage float in a
 # landmark makes cv2 fail with "int too big to convert" and take the whole
@@ -908,37 +913,78 @@ class ArmController:
 BACKENDS = {"any": None, "dshow": "CAP_DSHOW", "msmf": "CAP_MSMF",
             "v4l2": "CAP_V4L2", "gstreamer": "CAP_GSTREAMER"}
 
+# On Windows the default backend is MSMF, which on many USB cameras opens the
+# device and then fails every single read:
+#     CvCapture_MSMF::initStream Failed to select stream 0
+#     cv2.error: (-215:Assertion failed) _step >= minstep in function 'cv::Mat::Mat'
+# DirectShow handles the same cameras fine, so on Windows it is tried first.
+WINDOWS = sys.platform.startswith("win")
 
-def open_camera(index: int, backend: str = "any") -> "cv2.VideoCapture":
-    """Open a camera, optionally through a named backend, and say what it gave."""
-    want = BACKENDS.get(backend)
-    order = [want, None] if want else [None]
-    last = None
-    for name in order:
-        flag = getattr(cv2, name) if name else None
-        cap = cv2.VideoCapture(index, flag) if flag is not None else cv2.VideoCapture(index)
-        last = cap
-        if cap.isOpened():
-            ok, frame = cap.read()
-            if ok and frame is not None and frame.size:
+
+def _backend_order(backend: str) -> List[Optional[str]]:
+    prefer: List[Optional[str]] = (
+        ["CAP_DSHOW", "CAP_MSMF", None] if WINDOWS else [None, "CAP_V4L2", "CAP_DSHOW"])
+    if backend != "any":
+        want = BACKENDS.get(backend)
+        if want:
+            return [want] + [n for n in prefer if n != want]
+    return prefer
+
+
+def _read_frame(cap: "cv2.VideoCapture"):
+    """cap.read() that never throws. Broken backends raise instead of failing."""
+    try:
+        ok, frame = cap.read()
+    except cv2.error:
+        return False, None
+    if not ok or frame is None or not getattr(frame, "size", 0):
+        return False, None
+    if frame.ndim == 2:                     # greyscale cameras
+        frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+    return True, frame
+
+
+def open_camera(index: int, backend: str = "any", width: int = 0,
+                height: int = 0, tries: int = 3) -> Optional["cv2.VideoCapture"]:
+    """Open a camera, prove it actually delivers frames, and say which backend won."""
+    for name in _backend_order(backend):
+        flag = getattr(cv2, name, None) if name else None
+        try:
+            cap = cv2.VideoCapture(index, flag) if flag is not None else cv2.VideoCapture(index)
+        except Exception:                                        # noqa: BLE001
+            continue
+        if not cap.isOpened():
+            cap.release()
+            continue
+        if width and height:
+            try:
+                cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+                cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+            except Exception:                                    # noqa: BLE001
+                pass
+        for _ in range(tries):
+            ok, frame = _read_frame(cap)
+            if ok:
                 h, w = frame.shape[:2]
                 log(f"[cv] camera {index} open via {name or 'default'} backend: {w}x{h}")
                 return cap
+            time.sleep(0.05)
+        log(f"[cv] {name or 'default'} backend opened camera {index} but gave no frames")
         cap.release()
-    return last if last is not None else cv2.VideoCapture(index)
+    return None
 
 
 def probe_cameras(max_index: int = 5) -> List[int]:
     found = []
     for index in range(max_index):
-        cap = cv2.VideoCapture(index)
-        if cap.isOpened():
-            ok, frame = cap.read()
-            if ok and frame is not None:
+        cap = open_camera(index, tries=2)
+        if cap is not None:
+            ok, frame = _read_frame(cap)
+            if ok:
                 found.append(index)
                 h, w = frame.shape[:2]
-                print(f"camera {index}: {w}x{h}")
-        cap.release()
+                print(f"camera {index}: {w}x{h}  <- works")
+            cap.release()
     if not found:
         print("no working camera found (0..%d)" % (max_index - 1))
     return found
@@ -1283,15 +1329,22 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 0
 
     # ---- camera / video ---------------------------------------------------- #
-    cap = (open_camera(int(value), args.camera_backend) if kind == "camera"
-           else cv2.VideoCapture(str(value)))
-    if not cap.isOpened():
-        raise SystemExit(f"could not open {kind}: {value}"
-                         + ("  (try --probe)" if kind == "camera" else ""))
     if kind == "camera":
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, args.width)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, args.height)
-        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+        cap = open_camera(int(value), args.camera_backend, args.width, args.height)
+        if cap is None:
+            raise SystemExit(
+                f"camera {value} opened but never delivered a frame.\n"
+                "  - close anything else using the webcam (Zoom, Teams, Camera app)\n"
+                "  - try another device number:  --camera 1   (or --probe to list them)\n"
+                "  - try another backend:        --camera-backend dshow   (or msmf)")
+        try:
+            cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+        except Exception:                                        # noqa: BLE001
+            pass
+    else:
+        cap = cv2.VideoCapture(str(value))
+        if not cap.isOpened():
+            raise SystemExit(f"could not open {kind}: {value}")
 
     csv_writer = None
     csv_file = None
@@ -1306,6 +1359,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     fps_marks: Deque[float] = deque(maxlen=60)
     trail: Deque[Tuple[int, int]] = deque(maxlen=32)
     frame_index = 0
+    empty_reads = 0
     paused = False
     show_labels = True
     show_hud = True
@@ -1323,10 +1377,21 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     try:
         while True:
             if not paused:
-                ok, frame = cap.read()
-                if not ok or frame is None:
-                    log("[cv] end of stream")
-                    break
+                ok, frame = _read_frame(cap)
+                if not ok:
+                    if kind != "camera":
+                        log("[cv] end of stream")
+                        break
+                    empty_reads += 1
+                    if empty_reads in (1, 50):
+                        log("[cv] camera is not delivering frames — is another app "
+                            "using it? try --camera-backend dshow")
+                    if empty_reads >= 100:
+                        log("[cv] giving up after 100 empty frames")
+                        break
+                    time.sleep(0.02)
+                    continue
+                empty_reads = 0
                 if mirror:
                     frame = cv2.flip(frame, 1)
 

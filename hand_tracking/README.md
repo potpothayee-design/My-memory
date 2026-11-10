@@ -82,8 +82,11 @@ transform (ignores the forearm, which is thicker than the palm) → radial profi
 convert`, `Overload resolution failed`, a black window), run `--selftest` — it
 prints your Python/NumPy/OpenCV versions and an ok/FAIL per stage, so you can
 tell a code fault from a camera fault in one command. If the selftest passes but
-the camera does not, try `--camera-backend dshow` or `--camera-backend msmf`,
-and `--probe` to list working devices.
+the camera does not, it is almost always MSMF — this build already tries
+DirectShow first on Windows; if it still fails use `--camera-backend dshow`,
+`--camera 1` for another device, or `--probe` to list the ones that work.
+Typical MSMF symptom: `CvCapture_MSMF::initStream Failed to select stream 0`
+followed by `(-215:Assertion failed) _step >= minstep in function 'cv::Mat::Mat'`.
 
 Measured on one machine, one photo set: open palm → `OPEN_PALM` with all five
 fingertips on 240/240 frames of a synthetic video; closed fist → `FIST` on
