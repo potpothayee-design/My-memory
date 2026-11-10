@@ -36,10 +36,15 @@ When to use which:
 Quick start
 -----------
     pip install opencv-python numpy      # that is the entire dependency list
+    python hand_landmarker_cv.py --selftest         # first! checks every stage
     python hand_landmarker_cv.py                    # webcam
     python hand_landmarker_cv.py --calibrate        # same, but learn the room first
     python hand_landmarker_cv.py --image hand.jpg --out marked.jpg --json
     python hand_landmarker_cv.py --dry-run          # print arm commands
+
+--selftest draws a synthetic hand, runs mask -> detect -> draw -> json -> arm
+with no camera, and prints ok/FAIL per stage. If the script ever dies, that
+tells you in one line whether the fault is the code or the camera.
 
 Keys: q quit · c calibrate · b box · k trail · g gestures · h hud · i indices ·
       space pause · s snapshot
@@ -68,12 +73,28 @@ except ImportError:  # pragma: no cover
     sys.exit("OpenCV is missing. Run:  pip install opencv-python")
 
 QUIET = False
-VERSION = "1.0.0"
+VERSION = "1.0.1"
+
+# Windows builds of OpenCV take 32-bit C ints, so one garbage float in a
+# landmark makes cv2 fail with "int too big to convert" and take the whole
+# script down. Every number handed to cv2 goes through this instead.
+INT_LIMIT = 1_000_000
 
 
 def log(*parts: object) -> None:
     if not QUIET:
         print(*parts, file=sys.stderr, flush=True)
+
+
+def safe_int(value: object, fallback: int = 0) -> int:
+    """int() that never raises and never exceeds what cv2 accepts."""
+    try:
+        f = float(value)                      # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return fallback
+    if not math.isfinite(f):
+        return fallback
+    return max(-INT_LIMIT, min(INT_LIMIT, int(round(f))))
 
 
 # --------------------------------------------------------------------------- #
@@ -131,13 +152,13 @@ class Hand:
 
     def px(self, index: int, width: int, height: int) -> Tuple[int, int]:
         x, y = self.landmarks[index][:2]
-        return int(round(float(x) * width)), int(round(float(y) * height))
+        return safe_int(float(x) * width), safe_int(float(y) * height)
 
     def bbox(self, width: int, height: int, pad: int = 0) -> Tuple[int, int, int, int]:
         xs = self.landmarks[:, 0] * width
         ys = self.landmarks[:, 1] * height
-        x1, y1 = int(xs.min()) - pad, int(ys.min()) - pad
-        x2, y2 = int(xs.max()) + pad, int(ys.max()) + pad
+        x1, y1 = safe_int(xs.min()) - pad, safe_int(ys.min()) - pad
+        x2, y2 = safe_int(xs.max()) + pad, safe_int(ys.max()) + pad
         return (max(0, x1), max(0, y1), min(width - 1, x2), min(height - 1, y2))
 
 
@@ -679,7 +700,7 @@ class CVHandDetector:
 # --------------------------------------------------------------------------- #
 
 def _line_thickness(height: int) -> int:
-    return max(1, int(round(height / 320)))
+    return max(1, safe_int(height / 320))
 
 
 def _text(frame: np.ndarray, text: str, org: Tuple[int, int], scale: float,
@@ -695,15 +716,15 @@ def draw_hand(frame: np.ndarray, hand: Hand, *, show_labels: bool = True,
               show_seen: bool = False) -> None:
     h, w = frame.shape[:2]
     thick = _line_thickness(h)
-    r = max(2, int(round(min(w, h) * 0.007)))
+    r = max(2, safe_int(min(w, h) * 0.007))
 
     if show_bbox:
-        x1, y1, x2, y2 = hand.bbox(w, h, pad=int(min(w, h) * 0.03))
+        x1, y1, x2, y2 = hand.bbox(w, h, pad=safe_int(min(w, h) * 0.03))
         cv2.rectangle(frame, (x1, y1), (x2, y2), C_DARK, thick + 3, cv2.LINE_AA)
         cv2.rectangle(frame, (x1, y1), (x2, y2), C_BOX, thick + 1, cv2.LINE_AA)
 
     if show_seen:
-        cv2.circle(frame, hand.palm_center, int(hand.palm_radius), (90, 90, 90), 1, cv2.LINE_AA)
+        cv2.circle(frame, hand.palm_center, safe_int(hand.palm_radius), (90, 90, 90), 1, cv2.LINE_AA)
 
     for a, b in HAND_CONNECTIONS:
         color = FINGER_COLORS[POINT_FINGER[b]] if b not in (0, 5, 9, 13, 17) else C_BONE
@@ -732,7 +753,7 @@ def draw_hand(frame: np.ndarray, hand: Hand, *, show_labels: bool = True,
     if show_labels:
         x, y = hand.px(0, w, h)
         text = f"{hand.label} {hand.score:.2f}" if hand.label != "?" else f"{hand.score:.2f}"
-        _text(frame, text, (x + int(min(w, h) * 0.03), y + int(min(w, h) * 0.05)),
+        _text(frame, text, (x + safe_int(min(w, h) * 0.03), y + safe_int(min(w, h) * 0.05)),
               max(0.45, min(w, h) / 900), C_ACCENT, 2)
 
 
@@ -751,8 +772,8 @@ def draw_hud(frame: np.ndarray, lines: Sequence[str], *, show_help: bool = False
     if not lines:
         return
     scale = max(0.38, min(0.75, min(w, h) / 900))
-    pad = int(10 * scale / 0.6)
-    line_h = int(24 * scale / 0.6)
+    pad = safe_int(10 * scale / 0.6)
+    line_h = safe_int(24 * scale / 0.6)
     width = max(cv2.getTextSize(t, cv2.FONT_HERSHEY_SIMPLEX, scale, 1)[0][0] for t in lines) + 2 * pad
     height = line_h * len(lines) + 2 * pad
 
@@ -761,7 +782,7 @@ def draw_hud(frame: np.ndarray, lines: Sequence[str], *, show_help: bool = False
     cv2.addWeighted(overlay, 0.55, frame, 0.45, 0, frame)
 
     for i, text in enumerate(lines):
-        y = 10 + pad + line_h * (i + 1) - int(line_h * 0.3)
+        y = safe_int(10 + pad + line_h * (i + 1) - line_h * 0.3)
         cv2.putText(frame, text, (10 + pad, y), cv2.FONT_HERSHEY_SIMPLEX, scale,
                     C_ACCENT if i == 0 else C_TEXT, 1, cv2.LINE_AA)
 
@@ -884,6 +905,29 @@ class ArmController:
 # Small utilities
 # --------------------------------------------------------------------------- #
 
+BACKENDS = {"any": None, "dshow": "CAP_DSHOW", "msmf": "CAP_MSMF",
+            "v4l2": "CAP_V4L2", "gstreamer": "CAP_GSTREAMER"}
+
+
+def open_camera(index: int, backend: str = "any") -> "cv2.VideoCapture":
+    """Open a camera, optionally through a named backend, and say what it gave."""
+    want = BACKENDS.get(backend)
+    order = [want, None] if want else [None]
+    last = None
+    for name in order:
+        flag = getattr(cv2, name) if name else None
+        cap = cv2.VideoCapture(index, flag) if flag is not None else cv2.VideoCapture(index)
+        last = cap
+        if cap.isOpened():
+            ok, frame = cap.read()
+            if ok and frame is not None and frame.size:
+                h, w = frame.shape[:2]
+                log(f"[cv] camera {index} open via {name or 'default'} backend: {w}x{h}")
+                return cap
+        cap.release()
+    return last if last is not None else cv2.VideoCapture(index)
+
+
 def probe_cameras(max_index: int = 5) -> List[int]:
     found = []
     for index in range(max_index):
@@ -954,6 +998,123 @@ class GestureDebouncer:
 
 
 # --------------------------------------------------------------------------- #
+# Self-test (no camera, no photo needed)
+# --------------------------------------------------------------------------- #
+
+def synthetic_hand_frame(w: int = 640, h: int = 480) -> np.ndarray:
+    """A grey room with a skin-coloured hand in it — only for --selftest."""
+    frame = np.full((h, w, 3), (70, 60, 55), np.uint8)
+    skin = (150, 175, 215)                       # BGR, roughly skin in YCrCb
+    cx, cy = w // 2, int(h * 0.72)
+    cv2.ellipse(frame, (cx, cy), (72, 62), 0, 0, 360, skin, -1, cv2.LINE_AA)
+    for i, angle in enumerate((-62, -34, -6, 22, 52)):
+        rad = math.radians(angle - 90)
+        tip = (safe_int(cx + math.cos(rad) * (150 - 12 * abs(i - 2))),
+               safe_int(cy + math.sin(rad) * (150 - 12 * abs(i - 2))))
+        cv2.line(frame, (cx, cy), tip, skin, 26, cv2.LINE_AA)
+        cv2.circle(frame, tip, 13, skin, -1, cv2.LINE_AA)
+    cv2.line(frame, (cx, cy), (cx, h - 1), skin, 54, cv2.LINE_AA)    # forearm
+    return frame
+
+
+def selftest() -> int:
+    """Run every stage once and print ok/FAIL, so a crash points at one stage."""
+    import traceback
+
+    print("hand_landmarker_cv.py self-test")
+    print(f"python {sys.version.split()[0]} | numpy {np.__version__} | "
+          f"OpenCV {cv2.__version__}")
+    print(f"cv2 build: {'GUI' if hasattr(cv2, 'imshow') else 'headless'} | "
+          f"platform {sys.platform}")
+    print("-" * 52)
+
+    frame = synthetic_hand_frame()
+    state: dict = {}
+    failures = 0
+
+    def stage(name: str, fn) -> None:
+        nonlocal failures
+        try:
+            fn()
+            print(f"[ok]   {name}")
+        except Exception:                                    # noqa: BLE001
+            failures += 1
+            print(f"[FAIL] {name}")
+            traceback.print_exc()
+
+    def step_mask() -> None:
+        state["mask"] = HandSegmenter(0.02).mask(frame)
+        if not state["mask"].any():
+            raise RuntimeError("skin mask is empty on the synthetic hand")
+
+    def step_detect() -> None:
+        det = CVHandDetector(HandSegmenter(0.02), 0.02, 0.45)
+        hands = det.detect(frame, mirror=True)
+        if not hands:
+            raise RuntimeError("no hand found in the synthetic frame")
+        state["hand"] = hands[0]
+        state["detector"] = det
+
+    def step_numbers() -> None:
+        hand = state["hand"]
+        for x, y in (hand.palm_center, hand.px(8, 640, 480)):
+            if abs(int(x)) > 1e6 or abs(int(y)) > 1e6:
+                raise RuntimeError(f"landmark out of range: {x},{y}")
+        # the clamp that keeps Windows OpenCV happy
+        if safe_int(float("nan")) != 0 or safe_int(1e30) != INT_LIMIT:
+            raise RuntimeError("safe_int clamp is broken")
+
+    def step_draw_hand() -> None:
+        canvas = frame.copy()
+        draw_hand(canvas, state["hand"], show_indices=True, show_bbox=True, show_seen=True)
+
+    def step_draw_extras() -> None:
+        canvas = frame.copy()
+        draw_mask(canvas, state["mask"])
+        draw_trail(canvas, [(10, 10), (60, 90), (120, 40)])
+        draw_hud(canvas, ["hud line 1", "hud line 2"], show_help=True)
+
+    def step_json() -> None:
+        payload = hand_to_dict(state["hand"])
+        json.dumps(payload)
+        if len(payload["landmarks"]) != 21:
+            raise RuntimeError("expected 21 landmarks")
+
+    def step_arm() -> None:
+        was, globals()["QUIET"] = QUIET, True
+        try:
+            arm = ArmController(dry_run=True)
+            arm.update(state["hand"])
+            arm.close()
+        finally:
+            globals()["QUIET"] = was
+
+    def step_debounce() -> None:
+        deb = GestureDebouncer(5)
+        for _ in range(5):
+            deb("OPEN_PALM")
+        if deb("OPEN_PALM") != "OPEN_PALM":
+            raise RuntimeError("debouncer lost the gesture")
+
+    stage("skin mask (YCrCb)", step_mask)
+    stage("detect hand", step_detect)
+    stage("landmark numbers", step_numbers)
+    stage("draw_hand", step_draw_hand)
+    stage("draw hud / mask / trail", step_draw_extras)
+    stage("json output", step_json)
+    stage("arm dry-run", step_arm)
+    stage("gesture debouncer", step_debounce)
+
+    print("-" * 52)
+    if failures:
+        print(f"{failures} stage(s) FAILED — the traceback above says which line.")
+        return 1
+    print("all stages passed — the problem is the camera or the scene, not the code.")
+    print("next:  python hand_landmarker_cv.py --probe")
+    return 0
+
+
+# --------------------------------------------------------------------------- #
 # CLI
 # --------------------------------------------------------------------------- #
 
@@ -986,6 +1147,9 @@ def build_parser() -> argparse.ArgumentParser:
                    help="smallest hand blob as a fraction of the frame (0.02)")
     p.add_argument("--smooth", type=float, default=0.45,
                    help="landmark smoothing 0..1, 0 = off (0.45)")
+    p.add_argument("--camera-backend", default="any",
+                   choices=("any", "dshow", "msmf", "v4l2", "gstreamer"),
+                   help="Windows: try dshow or msmf if the camera misbehaves")
 
     o = p.add_argument_group("output")
     o.add_argument("--out", default=None, help="image mode: annotated image to write")
@@ -1013,6 +1177,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     m = p.add_argument_group("misc")
     m.add_argument("--probe", action="store_true", help="list working cameras and exit")
+    m.add_argument("--selftest", action="store_true",
+                   help="run every stage on a synthetic hand and print ok/fail (no camera)")
     m.add_argument("--version", action="version", version=f"hand_landmarker_cv.py {VERSION}")
     return p
 
@@ -1025,6 +1191,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.probe:
         probe_cameras()
         return 0
+
+    if args.selftest:
+        return selftest()
 
     source = args.image or args.video or args.source
     if args.camera is not None:
@@ -1114,7 +1283,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 0
 
     # ---- camera / video ---------------------------------------------------- #
-    cap = cv2.VideoCapture(int(value) if kind == "camera" else str(value))
+    cap = (open_camera(int(value), args.camera_backend) if kind == "camera"
+           else cv2.VideoCapture(str(value)))
     if not cap.isOpened():
         raise SystemExit(f"could not open {kind}: {value}"
                          + ("  (try --probe)" if kind == "camera" else ""))
@@ -1266,4 +1436,17 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except SystemExit:
+        raise
+    except KeyboardInterrupt:
+        sys.exit(130)
+    except BaseException:                                    # noqa: BLE001
+        import traceback
+        traceback.print_exc()
+        print("\n[crash] the traceback above is the useful part: the last "
+              "'File \"...\", line N' is where it stopped.\n"
+              "        Run  python hand_landmarker_cv.py --selftest  to check "
+              "every stage without a camera.", file=sys.stderr)
+        sys.exit(1)

@@ -50,6 +50,7 @@ does not: no `mediapipe`, no `.task`, no TFLite, no download — just geometry.
 
 ```
 pip install opencv-python numpy
+python hand_landmarker_cv.py --selftest         # every stage, no camera needed
 python hand_landmarker_cv.py                    # webcam
 python hand_landmarker_cv.py --calibrate        # learn the empty room first
 python hand_landmarker_cv.py --image hand.jpg --out marked.jpg --json
@@ -76,6 +77,13 @@ transform (ignores the forearm, which is thicker than the palm) → radial profi
 | Works on any background | yes | no — needs a non-skin background or `--calibrate` |
 | Depth (`z`) | yes | no, always 0 |
 | Fine poses (OK sign, 3 fingers) | yes | no |
+
+**Windows notes.** If it dies with a one-line cv2 error (`int too big to
+convert`, `Overload resolution failed`, a black window), run `--selftest` — it
+prints your Python/NumPy/OpenCV versions and an ok/FAIL per stage, so you can
+tell a code fault from a camera fault in one command. If the selftest passes but
+the camera does not, try `--camera-backend dshow` or `--camera-backend msmf`,
+and `--probe` to list working devices.
 
 Measured on one machine, one photo set: open palm → `OPEN_PALM` with all five
 fingertips on 240/240 frames of a synthetic video; closed fist → `FIST` on
