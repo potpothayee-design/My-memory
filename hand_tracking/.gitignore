@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+
+# the model bundle itself — 8 MB, downloaded on demand, not source
+hand_landmarker.task
+
+# run artifacts
+*.mp4
+snapshot_*.png
+*.csv
