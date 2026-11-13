@@ -1,0 +1,105 @@
+RUNNING THE HAND TRACKER ON THE PI
+==================================
+
+THE ERROR YOU HIT
+-----------------
+    python: can't open file '/home/pito/hand_landmarker.py': [Errno 2] ...
+
+The script is not on the Pi. /home/pito/ is empty. That error is about the
+file being missing, not about the camera. Camera settings are irrelevant
+until the file is actually there.
+
+Fix it with ONE of these.
+
+
+OPTION A - pull it down on the Pi  (easiest, needs internet once)
+-----------------------------------------------------------------
+In the ssh session:
+
+    curl -LO https://raw.githubusercontent.com/potpothayee-design/My-memory/arena/cc922a95-my-memory/pi/hand_landmarker.py
+
+Confirm it arrived:
+
+    ls -l hand_landmarker.py
+
+Expect about 63 KB. If you get 404 or a tiny file, the URL is wrong.
+
+
+OPTION B - copy it from Windows with scp
+----------------------------------------
+Open a NEW PowerShell window (leave the ssh session alone) and run:
+
+    scp "C:\Users\Hayee\Downloads\hand_landmarker.py" pito@pi.local:/home/pito/
+
+Change the source path to wherever the file really is.
+
+
+STEP 2 - RUN IT
+---------------
+    python hand_landmarker.py
+
+That is all. The defaults are now 1640x1232, the full sensor.
+
+If you are running an older copy that still defaults to 1280x720, pass it
+explicitly:
+
+    python hand_landmarker.py --width 1640 --height 1232
+
+
+STEP 3 - CONFIRM YOU GOT THE WHOLE SENSOR
+-----------------------------------------
+The script prints the resolution it really negotiated on startup:
+
+    [hand_landmarker] camera 0: 1640x1232    <- full sensor, correct
+    [hand_landmarker] camera 0: 1920x1080    <- cropped, mode refused
+    [hand_landmarker] camera 0: 1280x720     <- cropped further
+
+Compare that line before and after. It is the proof, not the feel of the
+picture.
+
+Standalone check, no hand tracker:
+
+    python -c "import cv2; c=cv2.VideoCapture(0); c.set(3,1640); c.set(4,1232); print('got', c.get(3), 'x', c.get(4))"
+
+
+WHY IT LOOKED ZOOMED IN
+-----------------------
+The Camera Module v2 (IMX219) has four sensor modes, not a continuous zoom:
+
+    640x480     pulls 1280x960 out of the middle    -> 2.56x zoom
+    1920x1080   pulls 1920x1080 out of the middle   -> 1.71x zoom   <- you were here
+    1640x1232   reads the WHOLE sensor, 2x2 binned  -> 1.00x, full FoV
+    3280x2464   reads the WHOLE sensor, full res    -> 1.00x, full FoV
+
+Only the last two see the full 62.2 x 48.8 degree field of view. Everything
+else is a centre window. A request for 1280x720 is not a real mode, so the
+driver quietly picked 1920x1080 for you - which is why it felt zoomed.
+
+1640x1232 is the better of the two full-FoV modes: same field of view as the
+32 MP readout, but binned so it runs much faster. Your own benchmark found
+inference time is flat across resolution (0.97x - 1.11x from 160x120 up to
+1920x1080), so this change costs you essentially no speed.
+
+
+CAREFUL: DO NOT ADD --fast
+--------------------------
+    python hand_landmarker.py --fast                      <- forces 640x480, WORST crop
+    python hand_landmarker.py --fast --width 1640 ...     <- the preset overrides you
+
+--fast deliberately trades field of view for frame rate. If you need speed,
+that is the deal. If you need to see your whole hand, skip it.
+
+
+IF IT IS STILL TOO TIGHT
+------------------------
+Then you are at the lens limit, not a setting. 62.2 degrees horizontal is
+everything a Camera Module v2 has. For scale: a typical phone main camera is
+70-80 degrees, an ultra-wide is 110+.
+
+Real options from there, all physical:
+  - move the camera further back (your documented range is 40-65 cm)
+  - mount higher and tilt down
+  - use a wider module (160-degree IMX219 variants) - different hardware
+
+Digital zoom cannot help. Enlarging an already-cropped frame just adds blur;
+the sensor still sees the same narrow window.
